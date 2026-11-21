@@ -1,0 +1,10 @@
+venv/
+.git/
+__pycache__/
+*.pyc
+notebook/
+data/uploads/
+models/archive/
+models/training_log.json
+uploads.db
+locust_results/
