@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 uploads.db
+
+data/uploads/
+models/archive/
+models/training_log.json

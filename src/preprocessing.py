@@ -73,16 +73,24 @@ def save_uploaded_image(image_bytes, label, upload_dir=UPLOAD_DIR):
 
 
 # ---------------------------------------------------------------- datasets
-def collect_image_paths(directories):
+def collect_image_paths(directories, max_per_class=None):
     """Find all images in <dir>/<class_name>/ for every directory given.
+    max_per_class: optional dict {directory: n} to randomly keep at most n images
+    per class from that directory (used to replay a sample of the old data).
     Returns two lists: file paths and integer labels."""
+    max_per_class = max_per_class or {}
+    rng = random.Random(SEED)
     paths, labels = [], []
     for directory in directories:
         for idx, cls in enumerate(CLASS_NAMES):
+            found = []
             for ext in IMAGE_EXTENSIONS:
-                found = glob.glob(os.path.join(directory, cls, f"*{ext}"))
-                paths.extend(found)
-                labels.extend([idx] * len(found))
+                found.extend(glob.glob(os.path.join(directory, cls, f"*{ext}")))
+            limit = max_per_class.get(directory)
+            if limit is not None and len(found) > limit:
+                found = rng.sample(sorted(found), limit)
+            paths.extend(found)
+            labels.extend([idx] * len(found))
     return paths, labels
 
 
@@ -103,10 +111,10 @@ def _to_dataset(paths, labels, batch_size, shuffle):
 
 
 def build_train_val_datasets(directories=(TRAIN_DIR,), validation_split=0.15,
-                             batch_size=BATCH_SIZE):
+                             batch_size=BATCH_SIZE, max_per_class=None):
     """Build training and validation datasets from one or more folders
-    (e.g. the original data/train plus the newly uploaded data/uploads)."""
-    paths, labels = collect_image_paths(directories)
+    (e.g. a sample of the original data/train plus the newly uploaded data/uploads)."""
+    paths, labels = collect_image_paths(directories, max_per_class)
     if len(paths) == 0:
         raise ValueError(f"No images found in {directories}")
 

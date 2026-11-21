@@ -1,0 +1,14 @@
+{
+  "model": "MobileNetV2 transfer learning (fine-tuned)",
+  "trained_in": "notebook/bean_disease_mlops.ipynb (Google Colab, T4 GPU)",
+  "tensorflow_version": "2.21.0",
+  "classes": ["angular_leaf_spot", "bean_rust", "healthy"],
+  "test_metrics": {
+    "accuracy": 0.9141,
+    "loss": 0.2649,
+    "precision": 0.9184,
+    "recall": 0.9145,
+    "f1_score": 0.9128,
+    "roc_auc": 0.9787
+  }
+}

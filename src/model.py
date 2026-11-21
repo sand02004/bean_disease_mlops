@@ -26,6 +26,7 @@ ARCHIVE_DIR = "models/archive"
 LOG_PATH = "models/training_log.json"
 
 RETRAIN_THRESHOLD = 10      # trigger: retrain when at least this many new images are uploaded
+REPLAY_PER_CLASS = int(os.environ.get("REPLAY_PER_CLASS", 100))  # old images per class mixed in
 ACCURACY_TOLERANCE = 0.02   # deploy the new model unless it is >2% less accurate than the old one
 
 
@@ -99,8 +100,11 @@ def _append_log(entry):
 
 
 def retrain_model(model_path=MODEL_PATH, data_dirs=(TRAIN_DIR, UPLOAD_DIR),
-                  test_dir=TEST_DIR, epochs=5, learning_rate=1e-5, num_new_images=0):
-    """Fine-tune the saved model on original + uploaded images.
+                  test_dir=TEST_DIR, epochs=5, learning_rate=1e-5, num_new_images=0,
+                  replay_per_class=REPLAY_PER_CLASS, batch_size=16):
+    """Fine-tune the saved model on the uploaded images + a random sample
+    ("replay") of the original training images, so it learns the new data
+    without forgetting the old, and stays fast enough on a CPU.
     Returns a summary dict with old/new metrics and whether the new model was deployed."""
     started_at = datetime.now().isoformat(timespec="seconds")
 
@@ -108,9 +112,11 @@ def retrain_model(model_path=MODEL_PATH, data_dirs=(TRAIN_DIR, UPLOAD_DIR),
     old_model = load_model(model_path)
     old_metrics = evaluate_model(old_model, test_dir)
 
-    # 2. Data: original training images + uploaded images
+    # 2. Data: ALL uploaded images + a sample of the original training images
     existing_dirs = [d for d in data_dirs if os.path.isdir(d)]
-    train_ds, val_ds, n_train, n_val = build_train_val_datasets(existing_dirs)
+    train_ds, val_ds, n_train, n_val = build_train_val_datasets(
+        existing_dirs, batch_size=batch_size,
+        max_per_class={TRAIN_DIR: replay_per_class} if replay_per_class else None)
 
     # 3. Start from the saved model (pre-trained), add augmentation on top for training
     model = load_model(model_path)
