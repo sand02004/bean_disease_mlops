@@ -1,9 +1,10 @@
-
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
+    environment:
+      - TZ=CAT-2
     expose:
       - "8000"
     restart: unless-stopped
