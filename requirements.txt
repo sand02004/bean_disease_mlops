@@ -15,6 +15,7 @@ python-multipart
 # Web UI (Step 7)
 streamlit
 requests
+plotly
 
 # Load testing (Step 9)
 locust

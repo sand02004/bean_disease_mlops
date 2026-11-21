@@ -21,7 +21,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from src import database as db
 from src.model import LOG_PATH, MODEL_PATH, RETRAIN_THRESHOLD, retrain_model, should_retrain
 from src.prediction import BeanDiseasePredictor
-from src.preprocessing import CLASS_NAMES, TEST_DIR, TRAIN_DIR, save_uploaded_image
+from src.preprocessing import (CLASS_NAMES, TEST_DIR, TRAIN_DIR, compute_dataset_features,
+                               save_uploaded_image)
 
 AUTO_RETRAIN = os.environ.get("AUTO_RETRAIN", "false").lower() == "true"
 MODEL_INFO_PATH = "models/model_info.json"
@@ -41,6 +42,7 @@ predictor = BeanDiseasePredictor(MODEL_PATH)
 retrain_state = {"status": "idle", "started_at": None, "finished_at": None,
                  "result": None, "error": None}
 retrain_lock = threading.Lock()
+_features_cache = None   # image features for the dashboard, computed once
 
 
 # ---------------------------------------------------------------- helpers
@@ -194,3 +196,13 @@ def stats():
         "current_metrics": _current_metrics(),
         "training_runs": db.get_training_runs(),
     }
+
+
+@app.get("/insights")
+def insights():
+    """Per-image features (green ratio, brightness, edge density) of the training set,
+    used by the dashboard visualizations. Computed once, then cached."""
+    global _features_cache
+    if _features_cache is None:
+        _features_cache = compute_dataset_features(TRAIN_DIR)
+    return {"num_images": len(_features_cache), "features": _features_cache}

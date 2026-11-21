@@ -19,7 +19,7 @@ import uuid
 
 import numpy as np
 import tensorflow as tf
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageFilter, UnidentifiedImageError
 
 # ---------------------------------------------------------------- constants
 IMG_SIZE = (224, 224)
@@ -143,3 +143,30 @@ def get_data_augmentation():
         tf.keras.layers.RandomBrightness(0.2, value_range=(0, 255)),
         tf.keras.layers.RandomContrast(0.2),
     ], name="data_augmentation")
+
+
+# ---------------------------------------------------------------- insights
+def compute_image_features(path):
+    """The 3 features interpreted in the notebook (computed on a 128x128 copy)."""
+    img = Image.open(path).convert("RGB").resize((128, 128))
+    arr = np.asarray(img, dtype=np.float32)
+    r, g, b = arr[..., 0].mean(), arr[..., 1].mean(), arr[..., 2].mean()
+    gray_img = img.convert("L")
+    gray = np.asarray(gray_img, dtype=np.float32)
+    edges = np.asarray(gray_img.filter(ImageFilter.FIND_EDGES), dtype=np.float32)
+    return {
+        "green_ratio": round(float(g / (r + g + b + 1e-6)), 4),
+        "brightness": round(float(gray.mean()), 2),
+        "edge_density": round(float((edges > 40).mean()), 4),
+    }
+
+
+def compute_dataset_features(directory=TRAIN_DIR):
+    """Features for every image in a folder, used by the dashboard charts."""
+    paths, labels = collect_image_paths([directory])
+    rows = []
+    for path, label in zip(paths, labels):
+        feats = compute_image_features(path)
+        feats["class"] = CLASS_NAMES[label]
+        rows.append(feats)
+    return rows
