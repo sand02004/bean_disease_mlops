@@ -1,0 +1,20 @@
+# Machine learning (same TensorFlow version as Colab, where the model was trained)
+tensorflow==2.21.0
+numpy
+pandas
+pillow
+scikit-learn
+matplotlib
+seaborn
+
+# API (Step 6)
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Web UI (Step 7)
+streamlit
+requests
+
+# Load testing (Step 9)
+locust
