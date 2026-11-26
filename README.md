@@ -2,7 +2,7 @@
 
 I'm Sandrine Umugwaneza, and this is my MLOps project at African Leadership University. My focus is using machine learning in agriculture, so I built a tool that tells a farmer whether a bean leaf is healthy or sick, just from a photo taken with a phone.
 
-- **Video demo:** [ADD YOUR YOUTUBE LINK HERE](https://youtube.com/)
+- **Video demo:** https://youtu.be/MLC9dvZiBN4
 - **Web app:** http://16.171.47.170:8501
 - **API (Swagger):** http://16.171.47.170:8000/docs
 
